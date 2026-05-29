@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PIM-3 — RC Gestão Médica</title>
+
+  <!-- SheetJS para exportar Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    /* ================================================
+       IDENTIDADE VISUAL — RC GESTÃO MÉDICA
+       Para personalizar: altere as variáveis abaixo
+       ================================================ */
+    :root {
+      --rc-primary:      #1A3A5C;   /* Azul escuro principal — troque pela cor primária da RC */
+      --rc-primary-dark: #122840;   /* Hover do botão principal */
+      --rc-accent:       #2A7FC1;   /* Azul médio — destaques e links */
+      --rc-accent-light: #E8F3FB;   /* Fundo suave de destaques */
+      --rc-success:      #2D7A3A;   /* Verde — baixo risco */
+      --rc-success-bg:   #EAF3DE;
+      --rc-warning:      #8A5A00;   /* Âmbar — risco moderado */
+      --rc-warning-bg:   #FEF3D0;
+      --rc-danger:       #A32D2D;   /* Vermelho — alto risco */
+      --rc-danger-bg:    #FCEBEB;
+      --rc-text:         #1A1A2E;
+      --rc-text-muted:   #5A6070;
+      --rc-border:       #D8DDE6;
+      --rc-bg:           #F4F6FA;
+      --rc-surface:      #FFFFFF;
+      --rc-radius:       10px;
+      --rc-radius-lg:    14px;
+      --rc-shadow:       0 2px 8px rgba(0,0,0,0.07);
+    }
+
+    /* Reset e base */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--rc-bg);
+      color: var(--rc-text);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ---- HEADER ---- */
+    .site-header {
+      background: var(--rc-primary);
+      color: #fff;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    /* LOGO: coloque o arquivo logo-rc.png na mesma pasta do HTML
+       ou troque o src pelo caminho correto */
+    .header-logo img {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    /* Fallback de texto enquanto não tem logo */
+    .logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.03em;
+    }
+
+    .logo-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.7);
+      font-weight: 400;
+    }
+
+    .header-right {
+      font-size: 12px;
+      color: rgba(255,255,255,0.65);
+      text-align: right;
+    }
+
+    /* ---- CONTAINER PRINCIPAL ---- */
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 28px 16px 48px;
+    }
+
+    /* ---- TÍTULO DA FERRAMENTA ---- */
+    .tool-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .tool-header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--rc-primary);
+      margin-bottom: 4px;
+    }
+
+    .tool-header p {
+      font-size: 13px;
+      color: var(--rc-text-muted);
+    }
+
+    .badges {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .badge-blue  { background: var(--rc-accent-light); color: var(--rc-accent); }
+    .badge-green { background: var(--rc-success-bg);   color: var(--rc-success); }
+
+    /* ---- CARDS / SEÇÕES ---- */
+    .card {
+      background: var(--rc-surface);
+      border: 1px solid var(--rc-border);
+      border-radius: var(--rc-radius-lg);
+      padding: 20px 22px;
+      margin-bottom: 14px;
+      box-shadow: var(--rc-shadow);
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--rc-accent);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-title::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 14px;
+      background: var(--rc-accent);
+      border-radius: 2px;
+    }
+
+    /* ---- CAMPOS ---- */
+    .field { margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field > label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--rc-text);
+      margin-bottom: 6px;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--rc-text-muted);
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--rc-border);
+      margin: 16px 0;
+    }
+
+    /* ---- RADIO BUTTONS ESTILIZADOS ---- */
+    .rb-group {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .rb {
+      flex: 1;
+      min-width: 120px;
+      padding: 8px 10px;
+      border: 1px solid var(--rc-border);
+      border-radius: var(--rc-radius);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--rc-text);
+      background: var(--rc-surface);
+      text-align: center;
+      transition: all 0.12s;
+      user-select: none;
+    }
+
+    .rb:hover { background: var(--rc-accent-light); border-color: var(--rc-accent); }
+
+    .rb.on {
+      border-color: var(--rc-accent);
+      background: var(--rc-accent-light);
+      color: var(--rc-accent);
+      font-weight: 600;
+    }
+
+    /* ---- INPUTS E SELECTS ---- */
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 9px 12px;
+      font-size: 14px;
+      border: 1px solid var(--rc-border);
+      border-radius: var(--rc-radius);
+      background: var(--rc-surface);
+      color: var(--rc-text);
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: inherit;
+    }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    select:focus {
+      border-color: var(--rc-accent);
+      box-shadow: 0 0 0 3px rgba(42,127,193,0.12);
+    }
+
+    input:disabled, select:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: var(--rc-bg);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .sublabel {
+      font-size: 11px;
+      color: var(--rc-text-muted);
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .oxy-preview {
+      font-size: 12px;
+      color: var(--rc-text-muted);
+      padding: 6px 10px;
+      background: var(--rc-bg);
+      border-radius: var(--rc-radius);
+      margin-top: 6px;
+      border: 1px solid var(--rc-border);
+    }
+
+    /* ---- RÓTULO DE RISCO NOS SELECTS ---- */
+    .risk-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .risk-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .risk-tag.vhr { background: var(--rc-danger-bg);   color: var(--rc-danger); }
+    .risk-tag.hr  { background: var(--rc-warning-bg);  color: var(--rc-warning); }
+    .risk-tag.lr  { background: var(--rc-success-bg);  color: var(--rc-success); }
+
+    /* ---- BOTÕES ---- */
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: var(--rc-radius-lg);
+      cursor: pointer;
+      border: none;
+      background: var(--rc-primary);
+      color: #fff;
+      margin-top: 6px;
+      letter-spacing: 0.02em;
+      transition: background 0.15s;
+    }
+
+    .btn-primary:hover { background: var(--rc-primary-dark); }
+    .btn-primary:active { transform: scale(0.99); }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 9px;
+      font-size: 13px;
+      border-radius: var(--rc-radius);
+      cursor: pointer;
+      border: 1px solid var(--rc-border);
+      background: transparent;
+      color: var(--rc-text-muted);
+      margin-top: 8px;
+      transition: background 0.12s;
+    }
+
+    .btn-secondary:hover { background: var(--rc-bg); }
+
+    /* ---- BOTÕES DE EXPORTAÇÃO ---- */
+    .export-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-export {
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--rc-radius);
+      cursor: pointer;
+      border: 1px solid;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: opacity 0.12s;
+    }
+
+    .btn-export:hover { opacity: 0.82; }
+
+    .btn-pdf {
+      background: var(--rc-danger-bg);
+      color: var(--rc-danger);
+      border-color: #e8a0a0;
+    }
+
+    .btn-xls {
+      background: var(--rc-success-bg);
+      color: var(--rc-success);
+      border-color: #a0d0a8;
+    }
+
+    .btn-save {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--rc-radius);
+      cursor: pointer;
+      border: 1px solid var(--rc-border);
+      background: var(--rc-bg);
+      color: var(--rc-text-muted);
+      transition: background 0.12s;
+    }
+
+    .btn-save:hover { background: var(--rc-accent-light); color: var(--rc-accent); border-color: var(--rc-accent); }
+
+    /* ---- RESULTADO ---- */
+    .result-card {
+      border-radius: var(--rc-radius-lg);
+      padding: 24px;
+      text-align: center;
+      margin-top: 16px;
+      border: 1px solid var(--rc-border);
+      background: var(--rc-surface);
+      box-shadow: var(--rc-shadow);
+    }
+
+    .result-label {
+      font-size: 13px;
+      color: var(--rc-text-muted);
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .result-number {
+      font-size: 52px;
+      font-weight: 800;
+      color: var(--rc-primary);
+      line-height: 1;
+    }
+
+    .result-sub {
+      font-size: 12px;
+      color: var(--rc-text-muted);
+      margin-top: 8px;
+    }
+
+    .bar-wrap {
+      height: 12px;
+      background: var(--rc-bg);
+      border-radius: 99px;
+      overflow: hidden;
+      border: 1px solid var(--rc-border);
+      margin: 14px 0;
+    }
+
+    .bar {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+
+    .risk-pill {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 16px;
+      border-radius: 20px;
+      margin-top: 4px;
+    }
+
+    .pill-low  { background: var(--rc-success-bg); color: var(--rc-success); }
+    .pill-mod  { background: var(--rc-warning-bg); color: var(--rc-warning); }
+    .pill-high { background: var(--rc-danger-bg);  color: var(--rc-danger); }
+
+    /* ---- DECOMPOSIÇÃO ---- */
+    details { margin-top: 8px; }
+
+    details summary {
+      font-size: 12px;
+      color: var(--rc-text-muted);
+      cursor: pointer;
+      padding: 5px 0;
+      user-select: none;
+    }
+
+    .detail-box {
+      font-size: 11px;
+      color: var(--rc-text-muted);
+      padding: 10px 12px;
+      background: var(--rc-bg);
+      border-radius: var(--rc-radius);
+      border: 1px solid var(--rc-border);
+      font-family: 'Courier New', monospace;
+      line-height: 2;
+      margin-top: 6px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    /* ---- MENSAGENS DE ERRO ---- */
+    .error-msg {
+      color: var(--rc-danger);
+      font-size: 13px;
+      text-align: center;
+      padding: 12px 16px;
+      background: var(--rc-danger-bg);
+      border: 1px solid #e8a0a0;
+      border-radius: var(--rc-radius);
+      margin-top: 16px;
+      line-height: 1.7;
+    }
+
+    /* ---- LISTA DE ESCORES SALVOS ---- */
+    .saved-card {
+      background: var(--rc-surface);
+      border: 1px solid var(--rc-border);
+      border-radius: var(--rc-radius-lg);
+      padding: 16px 20px;
+      margin-top: 14px;
+      box-shadow: var(--rc-shadow);
+    }
+
+    .saved-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--rc-border);
+    }
+
+    .saved-item:last-of-type { border-bottom: none; }
+
+    /* ---- REFERÊNCIA ---- */
+    .ref-box {
+      font-size: 11px;
+      color: var(--rc-text-muted);
+      padding: 12px 16px;
+      background: var(--rc-surface);
+      border: 1px solid var(--rc-border);
+      border-radius: var(--rc-radius);
+      margin-top: 16px;
+      line-height: 1.7;
+    }
+
+    /* ---- FOOTER ---- */
+    .site-footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 11px;
+      color: var(--rc-text-muted);
+      border-top: 1px solid var(--rc-border);
+      background: var(--rc-surface);
+      margin-top: 32px;
+    }
+
+    /* ---- RESPONSIVO MOBILE ---- */
+    @media (max-width: 520px) {
+      .grid-2  { grid-template-columns: 1fr; }
+      .export-grid { grid-template-columns: 1fr; }
+      .rb { min-width: 100px; }
+      .result-number { font-size: 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="site-header">
+  <a class="header-logo" href="#">
+    <!--
+      INSTRUÇÃO: coloque o arquivo da logo RC (ex: logo-rc.png) na mesma pasta
+      deste HTML e descomente a linha abaixo. A linha do fallback pode ser removida.
+    -->
+    <!-- <img src="logo-rc.png" alt="RC Gestão Médica"> -->
+    <div>
+      <div class="logo-text">RC</div>
+      <div class="logo-sub">Gestão Médica</div>
+    </div>
+  </a>
+  <div class="header-right">
+    Ferramentas Clínicas<br>
+    <span style="font-size:10px">Uso educacional e de pesquisa</span>
+  </div>
+</header>
+
+<!-- ============ CONTEÚDO PRINCIPAL ============ -->
+<main class="container">
+
+  <div class="tool-header">
+    <h1>Calculadora PIM-3</h1>
+    <p>Paediatric Index of Mortality 3 — Straney et al., <em>Pediatr Crit Care Med</em> 2013</p>
+    <div class="badges">
+      <span class="badge badge-blue">Uso educacional e de pesquisa</span>
+      <span class="badge badge-green">Fórmula ANZICS 2019 validada</span>
+    </div>
+  </div>
+
+  <!-- IDENTIFICAÇÃO -->
+  <div class="card">
+    <div class="card-title">Identificação do paciente</div>
+    <div class="field">
+      <label for="inp-pid">ID / Nome do paciente (opcional)</label>
+      <input type="text" id="inp-pid" placeholder="Ex: Paciente 01 — deixe em branco se preferir">
+    </div>
+  </div>
+
+  <!-- PARÂMETROS FISIOLÓGICOS -->
+  <div class="card">
+    <div class="card-title">Parâmetros fisiológicos</div>
+
+    <!-- SBP -->
+    <div class="field">
+      <label>Pressão arterial sistólica — PAS (mmHg)</label>
+      <div class="rb-group">
+        <div class="rb on" id="sbp-num-btn" onclick="setSbpMode('num')">Digitar valor</div>
+        <div class="rb"    id="sbp-na-btn"  onclick="setSbpMode('na')">Não disponível (usa 120)</div>
+      </div>
+      <input type="number" id="inp-sbp" placeholder="0 = parada cardíaca  |  30 = choque inimensurável" min="0" max="300">
+      <div class="hint">Registrar a 1ª medida do contato inicial até 1h após chegada na UTI</div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- PUPILAS -->
+    <div class="field">
+      <label>Reação pupilar à luz</label>
+      <div class="rb-group">
+        <div class="rb on" id="pr-0-btn" onclick="setPR(0)">Reativas / outro / desconhecido</div>
+        <div class="rb"    id="pr-1-btn" onclick="setPR(1)">Ambas fixas &gt; 3 mm</div>
+      </div>
+      <div class="hint">Não pontuar se alteração causada por drogas, toxinas ou trauma ocular direto</div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- OXY -->
+    <div class="field">
+      <label>Oxigenação — PaO₂ e FiO₂ (gasometria arterial)</label>
+      <div class="rb-group">
+        <div class="rb on" id="oxy-num-btn" onclick="setOxyMode('num')">Digitar valores</div>
+        <div class="rb"    id="oxy-na-btn"  onclick="setOxyMode('na')">Não disponível (padrão 0,23)</div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <span class="sublabel">PaO₂ (mmHg — arterial)</span>
+          <input type="number" id="inp-pao2" placeholder="Ex: 90" min="1" max="700">
+        </div>
+        <div>
+          <span class="sublabel">FiO₂ (% — ex: 40 para FiO₂ = 0,40)</span>
+          <input type="number" id="inp-fio2" placeholder="Ex: 40" min="21" max="100">
+        </div>
+      </div>
+      <div class="oxy-preview" id="oxy-preview">Termo 100 × FiO₂/PaO₂: preencha os dois campos acima</div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- VM -->
+    <div class="field">
+      <label>Ventilação mecânica na 1ª hora?</label>
+      <div class="rb-group">
+        <div class="rb on" id="mv-0-btn" onclick="setMV(0)">Não (inclui cateter nasal e HFNC)</div>
+        <div class="rb"    id="mv-1-btn" onclick="setMV(1)">Sim (VM invasiva, CPAP, BiPAP)</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- BE -->
+    <div class="field">
+      <label>Excesso de base — BE (mmol/L)</label>
+      <div class="rb-group">
+        <div class="rb on" id="be-num-btn" onclick="setBeMode('num')">Digitar valor</div>
+        <div class="rb"    id="be-na-btn"  onclick="setBeMode('na')">Não disponível (usa 0)</div>
+      </div>
+      <input type="number" id="inp-be" placeholder="Ex: -6 ou +4  —  aceita positivo ou negativo" min="-60" max="60">
+      <div class="hint">O modelo usa o valor absoluto |BE| automaticamente. Não precisa calcular antes.</div>
+    </div>
+  </div>
+
+  <!-- CARACTERÍSTICAS DA ADMISSÃO -->
+  <div class="card">
+    <div class="card-title">Características da admissão</div>
+
+    <div class="field">
+      <label>Admissão eletiva na UTI?</label>
+      <div class="rb-group">
+        <div class="rb on" id="el-0-btn" onclick="setElective(0)">Não</div>
+        <div class="rb"    id="el-1-btn" onclick="setElective(1)">Sim — poderia ser adiada &gt; 6h sem dano</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="field">
+      <label>Principal motivo da admissão na UTI</label>
+      <select id="sel-reason">
+        <option value="other">Não é recuperação de cirurgia ou procedimento</option>
+        <option value="bypass">Recuperação de cirurgia cardíaca COM bypass</option>
+        <option value="nonbypass">Recuperação de cirurgia cardíaca SEM bypass</option>
+        <option value="noncardiac">Recuperação de procedimento não cardíaco</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- DIAGNÓSTICO DE RISCO -->
+  <div class="card">
+    <div class="card-title">Diagnóstico de risco</div>
+    <p style="font-size:12px;color:var(--rc-text-muted);margin-bottom:14px">
+      Apenas um diagnóstico é considerado no cálculo.
+      Muito alto risco tem precedência sobre alto risco, que tem precedência sobre baixo risco.
+    </p>
+
+    <!-- Muito alto risco -->
+    <div class="field">
+      <div class="risk-label-row">
+        <label style="margin:0">Muito alto risco</label>
+        <span class="risk-tag vhr">Coef. +1,6225</span>
+      </div>
+      <select id="sel-vhr">
+        <option value="0">Nenhum</option>
+        <option value="1">Parada cardíaca precedendo a UTI (intra ou extra-hospitalar)</option>
+        <option value="1">Imunodeficiência combinada grave — SCID</option>
+        <option value="1">Leucemia ou Linfoma após 1ª indução</option>
+        <option value="1">Receptor de transplante de medula óssea</option>
+        <option value="1">Insuficiência hepática aguda ou crônica (motivo principal da admissão)</option>
+      </select>
+    </div>
+
+    <!-- Alto risco -->
+    <div class="field">
+      <div class="risk-label-row">
+        <label style="margin:0">Alto risco</label>
+        <span class="risk-tag hr">Coef. +1,0725</span>
+      </div>
+      <select id="sel-hr">
+        <option value="0">Nenhum</option>
+        <option value="1">Hemorragia cerebral espontânea (aneurisma / MAV)</option>
+        <option value="1">Cardiomiopatia ou miocardite</option>
+        <option value="1">Síndrome do coração esquerdo hipoplásico</option>
+        <option value="1">Doença neurodegenerativa (perda progressiva de marcos)</option>
+        <option value="1">Enterocolite necrosante (motivo principal da admissão)</option>
+      </select>
+    </div>
+
+    <!-- Baixo risco -->
+    <div class="field">
+      <div class="risk-label-row">
+        <label style="margin:0">Baixo risco</label>
+        <span class="risk-tag lr">Coef. −2,1766</span>
+      </div>
+      <select id="sel-lr">
+        <option value="0">Nenhum</option>
+        <option value="1">Asma</option>
+        <option value="1">Bronquiolite</option>
+        <option value="1">Crupe (laringotraqueobronquite)</option>
+        <option value="1">Apneia obstrutiva do sono</option>
+        <option value="1">Cetoacidose diabética — CAD</option>
+        <option value="1">Convulsão / Estado epiléptico / Epilepsia</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- BOTÕES DE AÇÃO -->
+  <button class="btn-primary" onclick="doCalc()">⚕ Calcular PIM-3</button>
+  <button class="btn-secondary" onclick="doReset()">↺ Limpar todos os campos</button>
+
+  <!-- ÁREA DE RESULTADO -->
+  <div id="out"></div>
+
+  <!-- ÁREA DE EXPORTAÇÃO (aparece após calcular) -->
+  <div id="export-area" style="display:none;">
+    <div class="export-grid">
+      <button class="btn-export btn-pdf" onclick="exportPDF()">
+        📄 Exportar PDF
+      </button>
+      <button class="btn-export btn-xls" onclick="exportExcel()">
+        📊 Exportar Excel (.xlsx)
+      </button>
+    </div>
+    <button class="btn-save" onclick="saveScore()">
+      + Salvar este escore (acúmulo de múltiplos pacientes)
+    </button>
+    <div id="saved-area"></div>
+  </div>
+
+  <!-- REFERÊNCIA -->
+  <div class="ref-box">
+    <strong>Referência:</strong> Straney L, Clements A, Parslow RC, Pearson G, Shann F, Alexander J, Slater A.
+    Paediatric Index of Mortality 3: An Updated Model for Predicting Mortality in Pediatric Intensive Care.
+    <em>Pediatr Crit Care Med</em> 2013;14(7):673–81. PMID: 23863821.<br>
+    Coeficientes validados pelo ANZICS PIC Registry Information Booklet, versão janeiro/2019.<br>
+    <span style="color:var(--rc-danger);font-weight:600">Uso exclusivo para fins educacionais e de pesquisa. Não substitui avaliação clínica.</span>
+  </div>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  RC Gestão Médica &nbsp;|&nbsp; Ferramentas Clínicas &nbsp;|&nbsp; Desenvolvido para uso educacional
+</footer>
+
+<!-- ============ JAVASCRIPT ============ -->
+<script>
+  // ======================================
+  // ESTADO GLOBAL
+  // ======================================
+  var G = { sbpMode:'num', pr:0, oxyMode:'num', mv:0, beMode:'num', elective:0 };
+  var lastResult  = null;
+  var savedScores = [];
+
+  // ======================================
+  // HELPERS DE UI
+  // ======================================
+  function setOn(id)  { document.getElementById(id).className = 'rb on'; }
+  function setOff(id) { document.getElementById(id).className = 'rb'; }
+
+  function setSbpMode(m) {
+    G.sbpMode = m;
+    var inp = document.getElementById('inp-sbp');
+    if (m === 'num') { setOn('sbp-num-btn'); setOff('sbp-na-btn'); inp.disabled = false; }
+    else             { setOff('sbp-num-btn'); setOn('sbp-na-btn'); inp.disabled = true; inp.value = ''; }
+  }
+
+  function setPR(v) {
+    G.pr = v;
+    if (v === 0) { setOn('pr-0-btn'); setOff('pr-1-btn'); }
+    else         { setOff('pr-0-btn'); setOn('pr-1-btn'); }
+  }
+
+  function setOxyMode(m) {
+    G.oxyMode = m;
+    var p = document.getElementById('inp-pao2'), f = document.getElementById('inp-fio2');
+    if (m === 'num') {
+      setOn('oxy-num-btn'); setOff('oxy-na-btn');
+      p.disabled = false; f.disabled = false;
+      document.getElementById('oxy-preview').textContent = 'Termo 100 × FiO₂/PaO₂: preencha os dois campos acima';
+    } else {
+      setOff('oxy-num-btn'); setOn('oxy-na-btn');
+      p.disabled = true; f.disabled = true; p.value = ''; f.value = '';
+      document.getElementById('oxy-preview').textContent = 'Padrão aplicado: termo = 0,23 (equivale a FiO₂ normal no ar ambiente)';
+    }
+  }
+
+  function setMV(v) {
+    G.mv = v;
+    if (v === 0) { setOn('mv-0-btn'); setOff('mv-1-btn'); }
+    else         { setOff('mv-0-btn'); setOn('mv-1-btn'); }
+  }
+
+  function setBeMode(m) {
+    G.beMode = m;
+    var b = document.getElementById('inp-be');
+    if (m === 'num') { setOn('be-num-btn'); setOff('be-na-btn'); b.disabled = false; }
+    else             { setOff('be-num-btn'); setOn('be-na-btn'); b.disabled = true; b.value = ''; }
+  }
+
+  function setElective(v) {
+    G.elective = v;
+    if (v === 0) { setOn('el-0-btn'); setOff('el-1-btn'); }
+    else         { setOff('el-0-btn'); setOn('el-1-btn'); }
+  }
+
+  // Preview do termo oximétrico
+  document.addEventListener('input', function(e) {
+    if (e.target.id === 'inp-pao2' || e.target.id === 'inp-fio2') updateOxyPreview();
+  });
+
+  function updateOxyPreview() {
+    if (G.oxyMode === 'na') return;
+    var p = parseFloat(document.getElementById('inp-pao2').value);
+    var f = parseFloat(document.getElementById('inp-fio2').value);
+    var el = document.getElementById('oxy-preview');
+    if (!isNaN(p) && !isNaN(f) && p > 0 && f > 0) {
+      var term = 100 * (f / 100) / p;
+      el.textContent = 'Termo 100 × FiO₂/PaO₂ = ' + term.toFixed(4) + '  →  contribuição no logit: ' + (0.4214 * term).toFixed(4);
+    } else {
+      el.textContent = 'Termo 100 × FiO₂/PaO₂: preencha os dois campos acima';
+    }
+  }
+
+  // ======================================
+  // CÁLCULO PRINCIPAL — FÓRMULA PIM-3
+  // Referência: Straney et al. 2013 / ANZICS Booklet Jan/2019
+  // ======================================
+  function doCalc() {
+    var errors = [];
+
+    // SBP
+    var sbp;
+    if (G.sbpMode === 'na') {
+      sbp = 120;
+    } else {
+      var sv = document.getElementById('inp-sbp').value;
+      if (sv === '') { errors.push('Pressão arterial sistólica (PAS) não preenchida'); }
+      else { sbp = parseFloat(sv); }
+    }
+
+    // Oxigenação
+    var oxyTerm;
+    if (G.oxyMode === 'na') {
+      oxyTerm = 0.23;
+    } else {
+      var pv = document.getElementById('inp-pao2').value;
+      var fv = document.getElementById('inp-fio2').value;
+      if (pv === '' || fv === '') {
+        errors.push('PaO₂ e FiO₂ não preenchidos — ou marque "Não disponível"');
+      } else {
+        var p2 = parseFloat(pv), f2 = parseFloat(fv);
+        if (p2 <= 0) errors.push('PaO₂ deve ser maior que zero');
+        else if (f2 <= 0) errors.push('FiO₂ deve ser maior que zero');
+        else oxyTerm = 100 * (f2 / 100) / p2;
+      }
+    }
+
+    // BE
+    var be;
+    if (G.beMode === 'na') {
+      be = 0;
+    } else {
+      var bv = document.getElementById('inp-be').value;
+      if (bv === '') { errors.push('Excesso de base (BE) não preenchido — ou marque "Não disponível"'); }
+      else { be = Math.abs(parseFloat(bv)); }  // Modelo usa valor absoluto |BE|
+    }
+
+    // Exibir erros se houver
+    if (errors.length > 0) {
+      document.getElementById('out').innerHTML =
+        '<div class="error-msg">' + errors.map(function(e){ return '⚠ ' + e; }).join('<br>') + '</div>';
+      document.getElementById('export-area').style.display = 'none';
+      return;
+    }
+
+    // Diagnósticos — aplicar precedência VHR > HR > LR
+    var vhr = parseInt(document.getElementById('sel-vhr').value) || 0;
+    var hr  = parseInt(document.getElementById('sel-hr').value)  || 0;
+    var lr  = parseInt(document.getElementById('sel-lr').value)  || 0;
+    if (vhr === 1) { hr = 0; lr = 0; }
+    else if (hr === 1) { lr = 0; }
+
+    // Motivo de admissão
+    var reason     = document.getElementById('sel-reason').value;
+    var recByp     = reason === 'bypass'    ? 1 : 0;
+    var recNonByp  = reason === 'nonbypass' ? 1 : 0;
+    var recNonCard = reason === 'noncardiac'? 1 : 0;
+
+    // ---- FÓRMULA OFICIAL PIM-3 ----
+    // PIM3val = (3.8233 × Pupils) − (0.5378 × Elective) + (0.9763 × MechVent)
+    //         + (0.0671 × |BE|) − (0.0431 × SBP) + (0.1716 × SBP²/1000)
+    //         + (0.4214 × 100×FiO2/PaO2)
+    //         − (1.2246 × Recov_CardByp) − (0.8762 × Recov_CardNonByp) − (1.5164 × Recov_NonCard)
+    //         + (1.6225 × VHRdiag) + (1.0725 × HRdiag) − (2.1766 × LRdiag)
+    //         − 1.7928
+    var logit =
+        3.8233  * G.pr
+      - 0.5378  * G.elective
+      + 0.9763  * G.mv
+      + 0.0671  * be
+      - 0.0431  * sbp
+      + 0.1716  * (sbp * sbp / 1000)
+      + 0.4214  * oxyTerm
+      - 1.2246  * recByp
+      - 0.8762  * recNonByp
+      - 1.5164  * recNonCard
+      + 1.6225  * vhr
+      + 1.0725  * hr
+      - 2.1766  * lr
+      - 1.7928;
+
+    var pdr = 100 / (1 + Math.exp(-logit));
+
+    // Classificação de risco
+    var riskLabel, pillClass, barColor;
+    if (pdr < 5) {
+      riskLabel = 'Baixo risco';   pillClass = 'pill-low'; barColor = '#2D7A3A';
+    } else if (pdr < 15) {
+      riskLabel = 'Risco moderado'; pillClass = 'pill-mod'; barColor = '#8A5A00';
+    } else {
+      riskLabel = 'Alto risco';    pillClass = 'pill-high'; barColor = '#A32D2D';
+    }
+
+    var barW = Math.min(pdr, 100).toFixed(1);
+
+    // Decomposição dos termos
+    var terms = [
+      ['Pupilas fixas',                   3.8233,  G.pr],
+      ['Admissão eletiva',               -0.5378,  G.elective],
+      ['Ventilação mecânica',             0.9763,  G.mv],
+      ['|Excesso de base|',               0.0671,  be],
+      ['SBP — termo linear',             -0.0431,  sbp],
+      ['SBP² / 1000 — termo quadrático',  0.1716,  sbp * sbp / 1000],
+      ['100 × FiO₂ / PaO₂',              0.4214,  oxyTerm],
+      ['Recup. bypass cardíaco',         -1.2246,  recByp],
+      ['Recup. não-bypass cardíaco',     -0.8762,  recNonByp],
+      ['Recup. proc. não cardíaco',      -1.5164,  recNonCard],
+      ['Muito alto risco',                1.6225,  vhr],
+      ['Alto risco',                      1.0725,  hr],
+      ['Baixo risco',                    -2.1766,  lr],
+      ['Intercepto',                      1,      -1.7928],
+    ];
+
+    var rows = terms.map(function(t) {
+      var contrib = t[1] * t[2];
+      var col = contrib > 0.0001 ? '#2D7A3A' : contrib < -0.0001 ? '#A32D2D' : '#999';
+      var sign = contrib >= 0 ? '+' : '';
+      return '<div class="detail-row"><span>' + t[0] + '</span>' +
+             '<span style="color:' + col + ';font-weight:600">' + sign + contrib.toFixed(4) + '</span></div>';
+    }).join('');
+
+    // Guardar resultado para exportação
+    lastResult = {
+      pid:      document.getElementById('inp-pid').value || 'Sem ID',
+      dt:       new Date().toLocaleString('pt-BR'),
+      sbp:      G.sbpMode === 'na' ? '120 (padrão)' : sbp,
+      pr:       G.pr === 1 ? 'Fixas >3mm (1)' : 'Reativas/outro (0)',
+      pao2:     G.oxyMode === 'na' ? 'N/D' : document.getElementById('inp-pao2').value,
+      fio2:     G.oxyMode === 'na' ? 'N/D' : document.getElementById('inp-fio2').value,
+      oxyTerm:  oxyTerm.toFixed(4),
+      mv:       G.mv === 1 ? 'Sim (1)' : 'Não (0)',
+      beRaw:    G.beMode === 'na' ? 'N/D' : document.getElementById('inp-be').value,
+      beAbs:    be,
+      elective: G.elective === 1 ? 'Sim (1)' : 'Não (0)',
+      reason:   document.getElementById('sel-reason').options[document.getElementById('sel-reason').selectedIndex].text,
+      vhrLabel: document.getElementById('sel-vhr').options[document.getElementById('sel-vhr').selectedIndex].text,
+      hrLabel:  document.getElementById('sel-hr').options[document.getElementById('sel-hr').selectedIndex].text,
+      lrLabel:  document.getElementById('sel-lr').options[document.getElementById('sel-lr').selectedIndex].text,
+      logit:    logit.toFixed(4),
+      pdr:      pdr.toFixed(2),
+      riskLabel:riskLabel,
+    };
+
+    // Renderizar resultado
+    document.getElementById('out').innerHTML =
+      '<div class="result-card">' +
+        '<div class="result-label">Taxa predita de mortalidade — PIM-3</div>' +
+        '<div class="result-number">' + pdr.toFixed(1) + '%</div>' +
+        '<div class="bar-wrap"><div class="bar" style="width:' + barW + '%;background:' + barColor + '"></div></div>' +
+        '<span class="risk-pill ' + pillClass + '">' + riskLabel + '</span>' +
+        '<div class="result-sub">' +
+          'PIM3val (logit) = ' + logit.toFixed(4) + ' &nbsp;|&nbsp; ' +
+          'Sobrevida esperada = ' + (100 - pdr).toFixed(1) + '%' +
+        '</div>' +
+      '</div>' +
+      '<details><summary>Ver decomposição completa da fórmula</summary>' +
+        '<div class="detail-box">' + rows +
+          '<div class="detail-row" style="border-top:1px solid #ddd;margin-top:6px;padding-top:6px">' +
+            '<strong>PIM3val total</strong><strong>' + logit.toFixed(4) + '</strong></div>' +
+        '</div>' +
+      '</details>';
+
+    document.getElementById('export-area').style.display = 'block';
+  }
+
+  // ======================================
+  // EXPORTAR PDF
+  // ======================================
+  function exportPDF() {
+    if (!lastResult) return;
+    var r = lastResult;
+    var pc = parseFloat(r.pdr);
+    var pillStyle = pc < 5
+      ? 'background:#EAF3DE;color:#2D7A3A'
+      : pc < 15
+        ? 'background:#FEF3D0;color:#8A5A00'
+        : 'background:#FCEBEB;color:#A32D2D';
+
+    var w = window.open('', '_blank');
+    w.document.write('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">');
+    w.document.write('<title>PIM-3 — ' + r.pid + '</title>');
+    w.document.write('<style>');
+    w.document.write('body{font-family:Arial,sans-serif;max-width:680px;margin:40px auto;color:#1A1A2E;font-size:14px;line-height:1.6}');
+    w.document.write('h1{font-size:22px;font-weight:700;color:#1A3A5C;margin-bottom:4px}');
+    w.document.write('.sub{font-size:12px;color:#777;margin-bottom:20px}');
+    w.document.write('h2{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#2A7FC1;border-bottom:2px solid #E8F3FB;padding-bottom:4px;margin:20px 0 10px}');
+    w.document.write('table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px}');
+    w.document.write('td,th{padding:7px 10px;border-bottom:1px solid #eee;text-align:left}');
+    w.document.write('th{background:#F4F6FA;font-weight:700;color:#1A3A5C}');
+    w.document.write('.big{font-size:48px;font-weight:800;color:#1A3A5C;margin:8px 0}');
+    w.document.write('.pill{display:inline-block;padding:4px 16px;border-radius:20px;font-size:14px;font-weight:700}');
+    w.document.write('.logit{font-size:13px;color:#777;margin-top:6px}');
+    w.document.write('.footer{font-size:11px;color:#999;margin-top:32px;border-top:1px solid #eee;padding-top:12px;line-height:1.7}');
+    w.document.write('.btn-print{margin-top:20px;padding:10px 20px;background:#1A3A5C;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}');
+    w.document.write('@media print{.btn-print{display:none}}');
+    w.document.write('</style></head><body>');
+
+    w.document.write('<h1>Calculadora PIM-3 — RC Gestão Médica</h1>');
+    w.document.write('<div class="sub">Straney et al., Pediatr Crit Care Med 2013 &nbsp;|&nbsp; Gerado em: ' + r.dt + '</div>');
+
+    w.document.write('<h2>Paciente</h2>');
+    w.document.write('<table><tr><th>Campo</th><th>Valor</th></tr>');
+    w.document.write('<tr><td>ID / Nome</td><td>' + r.pid + '</td></tr>');
+    w.document.write('<tr><td>Data / Hora</td><td>' + r.dt + '</td></tr>');
+    w.document.write('</table>');
+
+    w.document.write('<h2>Dados inseridos</h2>');
+    w.document.write('<table><tr><th>Variável</th><th>Valor inserido</th></tr>');
+    w.document.write('<tr><td>PAS (mmHg)</td><td>' + r.sbp + '</td></tr>');
+    w.document.write('<tr><td>Reação pupilar</td><td>' + r.pr + '</td></tr>');
+    w.document.write('<tr><td>PaO₂ (mmHg)</td><td>' + r.pao2 + '</td></tr>');
+    w.document.write('<tr><td>FiO₂ (%)</td><td>' + r.fio2 + '</td></tr>');
+    w.document.write('<tr><td>Termo 100×FiO₂/PaO₂</td><td>' + r.oxyTerm + '</td></tr>');
+    w.document.write('<tr><td>Ventilação mecânica</td><td>' + r.mv + '</td></tr>');
+    w.document.write('<tr><td>BE (valor inserido)</td><td>' + r.beRaw + '</td></tr>');
+    w.document.write('<tr><td>|BE| (usado no cálculo)</td><td>' + r.beAbs + '</td></tr>');
+    w.document.write('<tr><td>Admissão eletiva</td><td>' + r.elective + '</td></tr>');
+    w.document.write('<tr><td>Motivo da admissão</td><td>' + r.reason + '</td></tr>');
+    w.document.write('<tr><td>Muito alto risco</td><td>' + r.vhrLabel + '</td></tr>');
+    w.document.write('<tr><td>Alto risco</td><td>' + r.hrLabel + '</td></tr>');
+    w.document.write('<tr><td>Baixo risco</td><td>' + r.lrLabel + '</td></tr>');
+    w.document.write('</table>');
+
+    w.document.write('<h2>Resultado</h2>');
+    w.document.write('<div class="big">' + r.pdr + '%</div>');
+    w.document.write('<span class="pill" style="' + pillStyle + '">' + r.riskLabel + '</span>');
+    w.document.write('<div class="logit">PIM3val (logit) = ' + r.logit + ' &nbsp;|&nbsp; Sobrevida esperada = ' + (100 - parseFloat(r.pdr)).toFixed(1) + '%</div>');
+
+    w.document.write('<div class="footer">');
+    w.document.write('<strong>Referência:</strong> Straney L et al. Paediatric Index of Mortality 3. <em>Pediatr Crit Care Med</em> 2013;14(7):673–81. PMID 23863821.<br>');
+    w.document.write('Coeficientes: ANZICS PIC Registry Information Booklet, Jan/2019.<br>');
+    w.document.write('<strong style="color:#A32D2D">Uso exclusivo para fins educacionais e de pesquisa. Não substitui julgamento clínico.</strong>');
+    w.document.write('</div>');
+    w.document.write('<button class="btn-print" onclick="window.print()">Imprimir / Salvar como PDF</button>');
+    w.document.write('</body></html>');
+    w.document.close();
+  }
+
+  // ======================================
+  // EXPORTAR EXCEL (.xlsx)
+  // ======================================
+  function exportExcel() {
+    if (!lastResult && savedScores.length === 0) return;
+    var allRows = savedScores.length > 0 ? savedScores : [lastResult];
+
+    var headers = [
+      'ID / Paciente', 'Data / Hora',
+      'PAS (mmHg)', 'Reação Pupilar',
+      'PaO2 (mmHg)', 'FiO2 (%)', 'Termo 100xFiO2/PaO2',
+      'Ventilação Mecânica', 'BE (inserido)', '|BE| (cálculo)',
+      'Admissão Eletiva', 'Motivo Admissão',
+      'Muito Alto Risco', 'Alto Risco', 'Baixo Risco',
+      'PIM3val (logit)', 'Mortalidade Predita (%)', 'Classificação de Risco'
+    ];
+
+    var data = [headers].concat(allRows.map(function(r) {
+      return [
+        r.pid, r.dt,
+        r.sbp, r.pr,
+        r.pao2, r.fio2, r.oxyTerm,
+        r.mv, r.beRaw, r.beAbs,
+        r.elective, r.reason,
+        r.vhrLabel, r.hrLabel, r.lrLabel,
+        r.logit, r.pdr, r.riskLabel
+      ];
+    }));
+
+    var wb = XLSX.utils.book_new();
+    var ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = headers.map(function() { return { wch: 24 }; });
+    XLSX.utils.book_append_sheet(wb, 'PIM3 Escores', ws);
+
+    var filename = 'PIM3_RC_' + new Date().toLocaleDateString('pt-BR').replace(/\//g, '-') + '.xlsx';
+    XLSX.writeFile(wb, filename);
+  }
+
+  // ======================================
+  // SALVAR ESCORE (sessão)
+  // ======================================
+  function saveScore() {
+    if (!lastResult) return;
+    savedScores.push(JSON.parse(JSON.stringify(lastResult)));
+    renderSaved();
+  }
+
+  function renderSaved() {
+    if (savedScores.length === 0) { document.getElementById('saved-area').innerHTML = ''; return; }
+
+    var html = '<div class="saved-card"><div class="card-title">Escores salvos nesta sessão (' + savedScores.length + ')</div>';
+    savedScores.forEach(function(r) {
+      var pc = parseFloat(r.pdr);
+      var pillC = pc < 5 ? 'pill-low' : pc < 15 ? 'pill-mod' : 'pill-high';
+      html += '<div class="saved-item">';
+      html += '<span><strong>' + r.pid + '</strong> &mdash; ' + r.dt + '</span>';
+      html += '<span class="risk-pill ' + pillC + '" style="font-size:11px">' + r.pdr + '% — ' + r.riskLabel + '</span>';
+      html += '</div>';
+    });
+
+    html += '<button class="btn-export btn-xls" style="width:100%;margin-top:10px" onclick="exportExcel()">';
+    html += '📊 Exportar todos os ' + savedScores.length + ' escore(s) para Excel</button>';
+    html += '</div>';
+
+    document.getElementById('saved-area').innerHTML = html;
+  }
+
+  // ======================================
+  // RESET
+  // ======================================
+  function doReset() {
+    ['inp-sbp', 'inp-pao2', 'inp-fio2', 'inp-be', 'inp-pid'].forEach(function(id) {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('sel-reason').value = 'other';
+    document.getElementById('sel-vhr').value    = '0';
+    document.getElementById('sel-hr').value     = '0';
+    document.getElementById('sel-lr').value     = '0';
+    setSbpMode('num'); setOxyMode('num'); setBeMode('num');
+    setPR(0); setMV(0); setElective(0);
+    document.getElementById('out').innerHTML = '';
+    document.getElementById('export-area').style.display = 'none';
+    document.getElementById('oxy-preview').textContent = 'Termo 100 × FiO₂/PaO₂: preencha os dois campos acima';
+    lastResult = null;
+  }
+</script>
+
+</body>
+</html>
