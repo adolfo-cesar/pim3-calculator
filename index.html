@@ -65,26 +65,17 @@
       text-decoration: none;
     }
 
-    /* LOGO: coloque o arquivo logo-rc.png na mesma pasta do HTML
-       ou troque o src pelo caminho correto */
     .header-logo img {
-      height: 38px;
+      height: 34px;
       width: auto;
       object-fit: contain;
-    }
-
-    /* Fallback de texto enquanto não tem logo */
-    .logo-text {
-      font-size: 20px;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.03em;
     }
 
     .logo-sub {
       font-size: 11px;
       color: rgba(255,255,255,0.7);
       font-weight: 400;
+      margin-top: 2px;
     }
 
     .header-right {
@@ -542,15 +533,8 @@
 <!-- ============ HEADER ============ -->
 <header class="site-header">
   <a class="header-logo" href="#">
-    <!--
-      INSTRUÇÃO: coloque o arquivo da logo RC (ex: logo-rc.png) na mesma pasta
-      deste HTML e descomente a linha abaixo. A linha do fallback pode ser removida.
-    -->
-    <!-- <img src="logo-rc.png" alt="RC Gestão Médica"> -->
-    <div>
-      <div class="logo-text">RC</div>
-      <div class="logo-sub">Gestão Médica</div>
-    </div>
+    <img src="rc-branco.png" alt="RC Gestão Médica">
+    <div class="logo-sub">Gestão Médica</div>
   </a>
   <div class="header-right">
     Ferramentas Clínicas<br>
